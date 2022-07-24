@@ -1,14 +1,15 @@
 import os
 from typing import Union, Optional
-
+from yaml import CSafeLoader as Loader
 import yaml
+from infrastructure.PathResolver import PathResolver as pathRes
 
 basedir = os.path.dirname(__file__)
 
 # noinspection PyMethodMayBeStatic
 class DataAccess:
     def __init__(self, disease_text: str = Optional[str]):
-        self.filepath = basedir + '/Data/data.yml'
+        self.filepath = pathRes.resolve_path('data/data.yml')
 
         self.yml_data = self.load_data_map()
 
@@ -19,10 +20,11 @@ class DataAccess:
         self.data = None
         self.text = None
 
+    # todo - uncomment this and delete or comment out the previously declared duplicate function, before building
     def load_data_map(self) -> Optional[dict]:
         try:
             with open(self.filepath) as fh:
-                data = yaml.safe_load(fh)
+                data = yaml.load(fh, Loader=Loader)
                 return data
         except FileNotFoundError:
             return None

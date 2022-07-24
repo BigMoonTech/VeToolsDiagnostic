@@ -8,7 +8,7 @@ a = Analysis(
     ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[('Data/data.yml', 'VeToolsDiagnostics/Data')],
+    datas=[('data', 'data'), ('static', 'static'), ('infrastructure', 'infrastructure')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
