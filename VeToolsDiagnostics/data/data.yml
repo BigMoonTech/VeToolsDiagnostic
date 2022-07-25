@@ -1,17 +1,17 @@
 commonDialogs:
   animalSixMonths: &animalSixMonths "Is the animal less than 6 months old?"
   wcNearby: &wcNearby "Does the pet-parent have access to a Pet IQ wellness center nearby?"
-  takeToWC: &takeToWC 'Advise Pet-Parent: Please take the animal to your nearest wellness center to receive a prescription.'
+  takeToWC: &takeToWC 'Advise Pet-Parent: Please take the animal to your nearest wellness center to receive the recommended treatment.'
   ccNearby: &ccNearby 'Does the pet-parent have access to a community clinic nearby?'
-  takeToCC: &takeToCC 'Advise Pet-Parent: Take your animal to a nearby CC for treatment.'
+  takeToCC: &takeToCC 'Advise Pet-Parent: Take your animal to a nearby community clinic for the recommended treatment.'
   isUrgent: &isUrgent 'Does the animal need treatment immediately?'
-  adviseER: &adviseER 'Advise Pet-Parent: If possible, purchase Pyrantel liquid and treat with 1mL per every 10 pounds or another OTC de-wormer. Otherwise, take animal to FSV or ER.'
-  onlineRx: &onlineRx 'Advise Pet-Parent: If it is not urgent, place an online order for Pyrantel liquid and treat with 1mL per every 10 pounds.'
+  adviseER: &erRoundworm 'Advise Pet-Parent: Take the animal to an animal hospital ER for immediate treatment. Note: treatment is available through PetIQ and usually consists of Pyrantel liquid @ 1mL per every 10 pounds or another OTC de-wormer.'
+  onlineRx: &roundwormTx 'Advise Pet-Parent: Treatment is available through PetIQ and usually consists of Pyrantel liquid @ 1mL per every 10 pounds. Note: veterinarians recommend treating worms in a timely manner. OTC de-wormer, including Pyrantel, may be available online or through other means.'
   reweigh: &reweigh 'Advise Pet-Parent: The veterinarian is required to reweigh your animal before prescribing medication due to the length of time since last visit.'
   seenIn3Months: &seenIn3Months 'Has it been longer than 3 months since the pets last visit?'
   isLargeBreed: &isLargeBreed 'Is the animal a large breed dog (examples: Great Dane, Bull Mastiff)?'
-  fsvNearby: &fsvNearby 'Does the pet-parent have a relationship with a full service vet?'
-  lymeMeds: &lymeMeds 'Advise Recommended Dosage: Rx = Doxycycline-- x2 5mg tablets per pound, every 12 hours, for 28 days.'
+  fsvNearby: &fsvNearby 'Does the pet-parent have a relationship with a full service vet, where the animal can be seen in a reasonable amount of time?'
+  isChronicLyme: &isChronicLyme 'Is the infection chronic and/or recurring?'
 
 LymeDisease:
   text: *seenIn3Months
@@ -19,84 +19,186 @@ LymeDisease:
     text: *reweigh
     flag: end0
   negative:
-    text: 'Is the animal symptomatic? (Possible symptoms: )'
+    text: 'Is the animal symptomatic? Symptoms may include: a "walking on egg shell" gait, rotating lameness (limping on different leg every day), lethargy, increased thirst and urination...'
     affirmative:
-      text: *wcNearby
+      text: *isChronicLyme
       affirmative:
-        text: *takeToWC
-        flag: end1
-      negative:
-        text: *fsvNearby
+        text: *wcNearby
         affirmative:
-          text: 'go to vet'
-          flag: end2
-        negative:
-          text: *adviseER
+          text: *takeToWC
           flag: end
-        flag: a
-      flag: b
+        negative:
+          text: *fsvNearby
+          affirmative:
+            text: 'Advise Pet-Parent: Take the animal to a FSV. Ensure the animal can be seen in a timely manner. If they are unable to secure an appointment with their FSV quickly, advise taking the animal to ER. Note: a treatment is available through PetIQ and usually consists of Doxycycline -- x2 5mg tablets per pound, every 12 hours, for 28 days.'
+            flag: end
+          negative:
+            text: 'Advise Pet-Parent: Take the animal to an animal hospital ER. Note: a treatment is available through PetIQ and usually consists of Doxycycline @ x2 5mg tablets per pound, every 12 hours, for 28 days.'
+            flag: end
+          flag: a
+        flag: b
+      negative:
+        text: 'Advise Pet-Parent: If the infection is ACUTE, and the animal is SYMPTOMATIC, then advise treatment is necessary. A urinalysis to check kidney function is recommended in 2-3 months. Note: treatment is available through PetIQ and usually consists of Doxycycline @ x2 5mg tablets per pound, every 12 hours, for 28 days.'
+        flag: end
+      flag: c
     negative:
-      text: 'Advise Pet-Parent: Explain the process of the disease.'
-      flag: end4
-    flag: c
+      text: *isChronicLyme
+      affirmative:
+        text: 'Advise Pet-Parent: If the infection is CHRONIC, and the animal is ASYMPTOMATIC, then treatment is not necessary. Monitor animal for changes. A urinalysis to check kidney function is recommended in 1 month.'
+        flag: end
+      negative:
+        text: 'Advise Pet-Parent: If the infection is NOT CHRONIC, and the animal is ASYMPTOMATIC, then treatment is not necessary. Monitor animal for changes. A urinalysis to check kidney function is recommended in 1 month.'
+        flag: end
+      flag: d
+    flag: e
   flag: start
 
 FecalPositiveRoundworm:
-  text: *animalSixMonths
+  text: "Is the animal a cat or a dog? (yes for dog, no for cat)"
   affirmative:
-    text: "Has it been longer than 2 weeks since the animal's last visit?"
+    text:  *isLargeBreed
     affirmative:
-      text: *reweigh
-      flag: end
-    negative:
-      text: *wcNearby
+      text: "Has it been longer than 2 weeks since the animal's last visit?"
       affirmative:
-        text: *takeToWC
+        text: *reweigh
         flag: end
       negative:
-        text: *ccNearby
+        text: *wcNearby
         affirmative:
-          text: *takeToCC
+          text: *takeToWC
           flag: end
         negative:
-          text: *isUrgent
+          text: *ccNearby
           affirmative:
-            text: *adviseER
+            text: *takeToCC
             flag: end
           negative:
-            text: *onlineRx
+            text: *isUrgent
+            affirmative:
+              text: *erRoundworm
+              flag: end
+            negative:
+              text: *roundwormTx
+              flag: end
+            flag: e4
+          flag: e3
+        flag: e2
+      flag: e1
+    negative:
+      text: *animalSixMonths
+      affirmative:
+        text: "Has it been longer than 2 weeks since the animal's last visit?"
+        affirmative:
+          text: *reweigh
+          flag: end
+        negative:
+          text: *wcNearby
+          affirmative:
+            text: *takeToWC
             flag: end
-          flag: a4
-        flag: a3
-      flag: a2
-    flag: a1
+          negative:
+            text: *ccNearby
+            affirmative:
+              text: *takeToCC
+              flag: end
+            negative:
+              text: *isUrgent
+              affirmative:
+                text: *erRoundworm
+                flag: end
+              negative:
+                text: *roundwormTx
+                flag: end
+              flag: d4
+            flag: d3
+          flag: d2
+        flag: d1
+      negative:
+        text: *seenIn3Months
+        affirmative:
+          text: *reweigh
+          flag: end
+        negative:
+          text: *wcNearby
+          affirmative:
+            text: *takeToWC
+            flag: end
+          negative:
+            text: *ccNearby
+            affirmative:
+              text: *takeToCC
+              flag: end
+            negative:
+              text: *isUrgent
+              affirmative:
+                text: *erRoundworm
+                flag: end
+              negative:
+                text: *roundwormTx
+                flag: end
+              flag: c6
+            flag: c5
+          flag: c4
+        flag: c3
+      flag: c2
+    flag: c1
   negative:
-    text: *seenIn3Months
+    text: *animalSixMonths
     affirmative:
-      text: *reweigh
-      flag: end
-    negative:
-      text: *wcNearby
+      text: "Has it been longer than 2 weeks since the animal's last visit?"
       affirmative:
-        text: *takeToWC
+        text: *reweigh
         flag: end
       negative:
-        text: *ccNearby
+        text: *wcNearby
         affirmative:
-          text: *takeToCC
+          text: *takeToWC
           flag: end
         negative:
-          text: *isUrgent
+          text: *ccNearby
           affirmative:
-            text: *adviseER
+            text: *takeToCC
             flag: end
           negative:
-            text: *onlineRx
+            text: *isUrgent
+            affirmative:
+              text: *erRoundworm
+              flag: end
+            negative:
+              text: *roundwormTx
+              flag: end
+            flag: b4
+          flag: b3
+        flag: b2
+      flag: b1
+    negative:
+      text: *seenIn3Months
+      affirmative:
+        text: *reweigh
+        flag: end
+      negative:
+        text: *wcNearby
+        affirmative:
+          text: *takeToWC
+          flag: end
+        negative:
+          text: *ccNearby
+          affirmative:
+            text: *takeToCC
             flag: end
-          flag: b4
-        flag: b3
-      flag: b2
-    flag: b1
+          negative:
+            text: *isUrgent
+            affirmative:
+              text: *erRoundworm
+              flag: end
+            negative:
+              text: *roundwormTx
+              flag: end
+            flag: a4
+          flag: a3
+        flag: a2
+      flag: a1
+    flag: a0
   flag: start
 
 FecalPositiveHookworm:

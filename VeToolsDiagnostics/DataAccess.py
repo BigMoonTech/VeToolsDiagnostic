@@ -2,14 +2,14 @@ import os
 from typing import Union, Optional
 from yaml import CSafeLoader as Loader
 import yaml
-from infrastructure.PathResolver import PathResolver as pathRes
+from infrastructure.PathResolver import resolve_path
 
 basedir = os.path.dirname(__file__)
 
 # noinspection PyMethodMayBeStatic
 class DataAccess:
     def __init__(self, disease_text: str = Optional[str]):
-        self.filepath = pathRes.resolve_path('data/data.yml')
+        self.filepath = resolve_path('data/data.yml')
 
         self.yml_data = self.load_data_map()
 
