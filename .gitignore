@@ -16,7 +16,8 @@
 .python-version
 venv
 venvbrew
-.qrc
+*.qrc
+*.pages
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
