@@ -1,14 +1,14 @@
 import os
 import sys
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QUrl
 from PySide6.QtWidgets import QMainWindow, QApplication, QMessageBox
 
-from infrastructure.PathResolver import resolve_path
-
+# to run outside pycharm
 folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, folder)
 
+from infrastructure.PathResolver import resolve_path
 from DataAccess import DataAccess
 from MainWindow import Ui_MainWindow
 
@@ -21,6 +21,7 @@ try:
     windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
 except ImportError:
     pass
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -70,6 +71,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # filepath for the selected md file
         md_path = resolve_path(f'data/edu/{selected_disease}.md')
+
+        # QUrl from local file
+        md_path = QUrl.fromLocalFile(md_path)
 
         # todo: if multiple fecal positives are selected then loop through the required texts
         # set the education_textbox to contain the selected md file
