@@ -13,7 +13,7 @@ from DataAccess import DataAccess
 from MainWindow import Ui_MainWindow
 
 # noinspection PyUnresolvedReferences
-import logo_resource
+import logo_rsrc
 
 try:
     from ctypes import windll  # Only exists on Windows.
@@ -45,7 +45,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # implant the logo
         self.stylesheet = """
                 QStackedWidget {
-                    image: url(':/static/img/logo.svg');
+                    image: url(':/static/img/logo_transparent.png');
                 }
             """
         self.setStyleSheet(self.stylesheet)
@@ -69,27 +69,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def start_button_clicked(self):
         selected_disease = "".join(self.disease_selection.currentText().split()).strip()
 
-        # filepath for the selected md file
-        md_path = resolve_path(f'data/edu/{selected_disease}.md')
+        # when the start button is clicked, set the data to the root node of the selected disease
+        self.Data.base_data = self.Data.get_disease_root_node(self.Data.yml_data, selected_disease)
+        self.Data.flag = self.Data.current_node_flag(self.Data.yml_data, selected_disease)
 
-        # QUrl from local file
-        md_path = QUrl.fromLocalFile(md_path)
+        # initially same as base_data; will be continuously updated as the user answers questions
+        self.Data.current_data = self.Data.base_data.copy()
 
-        # todo: if multiple fecal positives are selected then loop through the required texts
-        # set the education_textbox to contain the selected md file
-        self.education_textbox.setSource(md_path)
-
-        self.stackedWidget.setCurrentIndex(2)
-
-        self.Data.disease_text = selected_disease
-        self.Data.base_data = self.Data.get_disease_dict(self.Data.yml_data, selected_disease)  # reset the tree
-        self.Data.flag = self.Data.get_current_flag(self.Data.yml_data, selected_disease)
-        self.Data.data = self.Data.base_data.copy()  # will update to the current branch of the decision tree
-        self.Data.text = self.Data.data['text']
+        # set the text to the current node's text
+        self.Data.text = self.Data.current_data['text']
         self.question.setText(self.Data.text)
 
         # set center alignment for the little questions
         self.question.setAlignment(Qt.AlignCenter)
+
+        # filepath for the selected disease's markdown file
+        disease_education_fp = resolve_path(f'data/edu/{selected_disease}.md')
+        disease_education_fp = QUrl.fromLocalFile(disease_education_fp)
+
+        # todo: if multiple fecal positives are selected then loop through the required texts
+
+        # set the education_textbox to contain the selected disease's education markdown
+        self.education_textbox.setSource(disease_education_fp)
+
+        # set the stacked widget to the education page
+        self.stackedWidget.setCurrentIndex(2)
 
     def edu_next_btn_clicked(self):
         self.stackedWidget.setCurrentIndex(1)
@@ -101,18 +105,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def next_button_clicked(self):
         # get the selected radio button
         if self.option_0.isChecked():
-            self.Data.data = self.Data.data['affirmative']
-            self.Data.text = self.Data.data['text']
-            self.Data.question_history.append(self.Data.flag)
+            self.Data.update_data('affirmative')
             self.question.setText(self.Data.text)
-            self.Data.flag = self.Data.data['flag']
 
         elif self.option_1.isChecked():
-            self.Data.data = self.Data.data['negative']
-            self.Data.text = self.Data.data['text']
-            self.Data.question_history.append(self.Data.flag)
+            self.Data.update_data('negative')
             self.question.setText(self.Data.text)
-            self.Data.flag = self.Data.data['flag']
+
         else:
             QMessageBox.critical(
                 self,
@@ -127,16 +126,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.next_button.setVisible(False)
 
     def prev_button_clicked(self):
-        print(self.Data.flag)
         if self.Data.flag == 'start':
             self.stackedWidget.setCurrentIndex(2)
         else:
             # set center alignment for the little questions
             self.question.setAlignment(Qt.AlignCenter)
+
+            # only calls .isVisible(true) if radios are hidden
             self.show_radios()
-            self.Data.data = self.Data.reset_to_flag(self.Data.base_data)
-            self.Data.text = self.Data.data['text']
-            self.Data.flag = self.Data.data['flag']
+
+            # update the data to the previous node
+            self.Data.current_data = self.Data.reset_to_flag(self.Data.base_data)
+            self.Data.text = self.Data.current_data['text']
+            self.Data.flag = self.Data.current_data['flag']
+
             self.question.setText(self.Data.text)
             self.next_button.setVisible(True)
 
@@ -148,12 +151,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.next_button.setVisible(True)
 
     def hide_radios(self):
-        self.option_0.setVisible(False)
-        self.option_1.setVisible(False)
+        if self.option_0.isVisible():
+            self.option_0.setVisible(False)
+            self.option_1.setVisible(False)
 
     def show_radios(self):
-        self.option_0.setVisible(True)
-        self.option_1.setVisible(True)
+        if not self.option_0.isVisible():
+            self.option_0.setVisible(True)
+            self.option_1.setVisible(True)
 
 
 if __name__ == "__main__":
